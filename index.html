@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agile Planning Poker</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <header>
+            <h1>Agile Planning Poker</h1>
+            <div id="room-info">
+                <span id="room-id">Room: </span>
+                <button id="copy-room-link" title="Copy room link"><i class="fas fa-copy"></i></button>
+                <button id="create-new-room">Create New Room</button>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <div class="sidebar">
+                <div class="jira-integration">
+                    <h3>JIRA Integration</h3>
+                    <div class="jira-login" id="jira-login-section">
+                        <input type="text" id="jira-url" placeholder="JIRA URL (e.g., https://your-domain.atlassian.net)">
+                        <input type="text" id="jira-email" placeholder="Email">
+                        <input type="password" id="jira-token" placeholder="API Token">
+                        <button id="jira-connect">Connect</button>
+                    </div>
+                    <div class="jira-connected hidden" id="jira-connected-section">
+                        <p>Connected to JIRA</p>
+                        <input type="text" id="jira-issue" placeholder="Issue ID (e.g., PROJ-123)">
+                        <button id="load-issue">Load Issue</button>
+                        <button id="disconnect-jira">Disconnect</button>
+                    </div>
+                </div>
+                
+                <div class="participants">
+                    <h3>Participants</h3>
+                    <ul id="participants-list">
+                        <!-- Participants will be added dynamically -->
+                    </ul>
+                </div>
+                
+                <div class="user-controls">
+                    <h3>Your Info</h3>
+                    <input type="text" id="user-name" placeholder="Your Name">
+                    <select id="user-role">
+                        <option value="team-member">Team Member</option>
+                        <option value="scrum-master">Scrum Master</option>
+                        <option value="product-owner">Product Owner</option>
+                        <option value="observer">Observer</option>
+                    </select>
+                    <button id="join-session">Join Session</button>
+                </div>
+            </div>
+            
+            <div class="poker-area">
+                <div class="story-display">
+                    <h2>Current User Story</h2>
+                    <div id="story-content">
+                        <p id="no-story-message">No story loaded. Connect to JIRA or add a story manually.</p>
+                        <div id="story-details" class="hidden">
+                            <h3 id="story-title"></h3>
+                            <p id="story-description"></p>
+                            <p id="story-link"></p>
+                        </div>
+                    </div>
+                    <div class="manual-story">
+                        <button id="add-manual-story">Add Story Manually</button>
+                        <div id="manual-story-form" class="hidden">
+                            <input type="text" id="manual-story-title" placeholder="Story Title">
+                            <textarea id="manual-story-description" placeholder="Story Description"></textarea>
+                            <button id="submit-manual-story">Add Story</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="voting-area">
+                    <h2>Cast Your Vote</h2>
+                    <div class="card-deck">
+                        <div class="card" data-value="1">1</div>
+                        <div class="card" data-value="2">2</div>
+                        <div class="card" data-value="3">3</div>
+                        <div class="card" data-value="5">5</div>
+                        <div class="card" data-value="8">8</div>
+                        <div class="card" data-value="13">13</div>
+                        <div class="card" data-value="21">21</div>
+                        <div class="card" data-value="?">?</div>
+                    </div>
+                    <div class="selected-card-display">
+                        <p>Your vote: <span id="selected-vote">None</span></p>
+                    </div>
+                </div>
+                
+                <div class="results-area">
+                    <h2>Voting Results</h2>
+                    <div class="moderator-controls">
+                        <button id="reveal-votes" disabled>Reveal Votes</button>
+                        <button id="reset-voting" disabled>Reset Voting</button>
+                    </div>
+                    <div id="voting-status">
+                        <p>Waiting for votes: <span id="votes-count">0</span>/<span id="participants-count">0</span></p>
+                    </div>
+                    <div id="results-display" class="hidden">
+                        <div id="vote-cards-container"></div>
+                        <div id="vote-summary">
+                            <p>Average: <span id="average-vote">-</span></p>
+                            <p>Median: <span id="median-vote">-</span></p>
+                            <p>Most common: <span id="mode-vote">-</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>Agile Planning Poker © 2025</p>
+        </footer>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.1/socket.io.min.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
