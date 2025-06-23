@@ -154,6 +154,39 @@ io.on('connection', (socket) => {
         console.log(`Story added to room ${roomId}`);
     });
     
+    // Timer events
+    socket.on('timer-start', (data) => {
+        const { roomId } = data;
+        
+        if (!roomId || !rooms[roomId]) return;
+        
+        // Check if the user is a moderator
+        const participant = rooms[roomId].participants.find(p => p.id === socket.id);
+        if (!participant || (participant.role !== 'scrum-master' && participant.role !== 'product-owner')) {
+            return;
+        }
+        
+        // Broadcast timer start to all participants in the room
+        io.to(roomId).emit('timer-started');
+        console.log(`Timer started in room ${roomId} by ${participant.name}`);
+    });
+    
+    socket.on('timer-reset', (data) => {
+        const { roomId } = data;
+        
+        if (!roomId || !rooms[roomId]) return;
+        
+        // Check if the user is a moderator
+        const participant = rooms[roomId].participants.find(p => p.id === socket.id);
+        if (!participant || (participant.role !== 'scrum-master' && participant.role !== 'product-owner')) {
+            return;
+        }
+        
+        // Broadcast timer reset to all participants in the room
+        io.to(roomId).emit('timer-reset');
+        console.log(`Timer reset in room ${roomId} by ${participant.name}`);
+    });
+    
     // Disconnect
     socket.on('disconnect', () => {
         const roomId = socket.roomId;
@@ -187,6 +220,25 @@ io.on('connection', (socket) => {
 
 // Start server
 const PORT = process.env.PORT || 3000;
+
+// Add error handling
+server.on('error', (error) => {
+    if (error.code === 'EADDRINUSE') {
+        console.log(`Port ${PORT} is already in use. Trying port ${PORT + 1}...`);
+        server.listen(PORT + 1);
+    } else {
+        console.error('Server error:', error);
+    }
+});
+
+process.on('SIGINT', () => {
+    console.log('Gracefully shutting down server...');
+    server.close(() => {
+        console.log('Server shut down successfully');
+        process.exit(0);
+    });
+});
+
 server.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });

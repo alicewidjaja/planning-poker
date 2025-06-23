@@ -17,6 +17,11 @@ let jiraConnection = {
     token: ''
 };
 
+// Timer variables
+let timerInterval = null;
+let timerValue = 10;
+let timerRunning = false;
+
 // DOM Elements
 const domElements = {
     roomId: document.getElementById('room-id'),
@@ -26,6 +31,9 @@ const domElements = {
     userName: document.getElementById('user-name'),
     userRole: document.getElementById('user-role'),
     joinSession: document.getElementById('join-session'),
+    timerValue: document.getElementById('timer-value'),
+    startTimer: document.getElementById('start-timer'),
+    resetTimer: document.getElementById('reset-timer'),
     cardDeck: document.querySelector('.card-deck'),
     selectedVote: document.getElementById('selected-vote'),
     revealVotes: document.getElementById('reveal-votes'),
@@ -92,6 +100,10 @@ function setupEventListeners() {
     // Moderator controls
     domElements.revealVotes.addEventListener('click', revealVotes);
     domElements.resetVoting.addEventListener('click', resetVoting);
+    
+    // Timer controls
+    domElements.startTimer.addEventListener('click', startTimer);
+    domElements.resetTimer.addEventListener('click', resetTimerFunction);
 
     // JIRA integration
     domElements.jiraConnect.addEventListener('click', connectToJira);
@@ -250,6 +262,18 @@ function setupSocketListeners() {
         displayStory();
     });
     
+    // Timer events
+    socket.on('timer-started', () => {
+        // Only start the timer if it's not already running
+        if (!timerRunning) {
+            startTimer();
+        }
+    });
+    
+    socket.on('timer-reset', () => {
+        resetTimerFunction();
+    });
+    
     // Connection error
     socket.on('connect_error', (error) => {
         console.error('Connection error:', error);
@@ -343,7 +367,9 @@ function revealVotes() {
 
 // Reset voting
 function resetVoting() {
-    socket.emit('reset-voting');
+    socket.emit('reset-voting', { roomId });
+    // Also reset the timer when voting is reset
+    resetTimerFunction();
 }
 
 // Connect to JIRA
@@ -596,6 +622,95 @@ function generateRoomId() {
 // Generate a random user ID
 function generateUserId() {
     return Math.random().toString(36).substring(2, 15);
+}
+
+// Timer functions
+function startTimer() {
+    if (timerRunning) return;
+    
+    // Reset timer value to 10 seconds
+    timerValue = 10;
+    updateTimerDisplay();
+    
+    // Remove any existing explosion animation
+    domElements.timerValue.classList.remove('explosion-animation');
+    
+    // Start the timer
+    timerRunning = true;
+    domElements.startTimer.innerHTML = '<i class="fas fa-pause"></i>';
+    domElements.startTimer.title = 'Pause Timer';
+    
+    // Broadcast timer start to all participants if user is moderator
+    if (currentUser.role === 'scrum-master' || currentUser.role === 'product-owner') {
+        socket.emit('timer-start', { roomId });
+    }
+    
+    // Set up the interval to count down
+    timerInterval = setInterval(() => {
+        timerValue--;
+        updateTimerDisplay();
+        
+        if (timerValue <= 0) {
+            clearInterval(timerInterval);
+            timerRunning = false;
+            domElements.startTimer.innerHTML = '<i class="fas fa-play"></i>';
+            domElements.startTimer.title = 'Start Timer';
+            
+            // Play explosion animation instead of revealing votes
+            playExplosionAnimation();
+        }
+    }, 1000);
+}
+
+function resetTimerFunction() {
+    // Clear any existing interval
+    clearInterval(timerInterval);
+    
+    // Reset timer value and update display
+    timerValue = 10;
+    timerRunning = false;
+    updateTimerDisplay();
+    
+    // Reset button appearance
+    domElements.startTimer.innerHTML = '<i class="fas fa-play"></i>';
+    domElements.startTimer.title = 'Start Timer';
+    
+    // Broadcast timer reset to all participants if user is moderator
+    if (currentUser.role === 'scrum-master' || currentUser.role === 'product-owner') {
+        socket.emit('timer-reset', { roomId });
+    }
+}
+
+function updateTimerDisplay() {
+    domElements.timerValue.textContent = timerValue;
+    
+    // Add visual indicators when time is running low
+    if (timerValue <= 3) {
+        domElements.timerValue.classList.add('timer-danger');
+        domElements.timerValue.classList.remove('timer-warning');
+    } else if (timerValue <= 5) {
+        domElements.timerValue.classList.add('timer-warning');
+        domElements.timerValue.classList.remove('timer-danger');
+    } else {
+        domElements.timerValue.classList.remove('timer-warning', 'timer-danger');
+    }
+}
+
+// Play explosion animation when timer reaches zero
+function playExplosionAnimation() {
+    // Add explosion animation class
+    domElements.timerValue.classList.add('explosion-animation');
+    domElements.timerValue.textContent = '💥';
+    
+    // Play sound effect (optional)
+    // const explosionSound = new Audio('path/to/explosion-sound.mp3');
+    // explosionSound.play();
+    
+    // Reset after animation completes
+    setTimeout(() => {
+        domElements.timerValue.classList.remove('explosion-animation');
+        domElements.timerValue.textContent = '0';
+    }, 1500);
 }
 
 // Initialize the application when the DOM is loaded

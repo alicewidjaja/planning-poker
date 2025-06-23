@@ -195,6 +195,116 @@ footer {
 }
 
 /* Voting Area */
+/* Timer Styles */
+.timer-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding: 10px 15px;
+    background-color: white;
+    border: 1px solid var(--primary-color);
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+}
+
+.timer-display {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+#timer-value {
+    font-size: 24px;
+    font-weight: bold;
+    color: var(--primary-color);
+    min-width: 30px;
+    text-align: center;
+}
+
+.timer-label {
+    font-size: 14px;
+    color: var(--text-color);
+}
+
+.timer-controls {
+    display: flex;
+    gap: 8px;
+}
+
+.timer-controls button {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0;
+    border-radius: var(--border-radius);
+}
+
+#start-timer {
+    background-color: var(--secondary-color);
+}
+
+#start-timer:hover {
+    background-color: #27ae60;
+}
+
+#reset-timer {
+    background-color: var(--accent-color);
+}
+
+#reset-timer:hover {
+    background-color: #c0392b;
+}
+
+.timer-warning {
+    color: #f39c12;
+}
+
+.timer-danger {
+    color: var(--accent-color);
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* Explosion Animation */
+.explosion-animation {
+    animation: explosion 1.5s ease-out forwards;
+    font-size: 36px;
+}
+
+@keyframes explosion {
+    0% {
+        transform: scale(0.5);
+        opacity: 0;
+    }
+    25% {
+        transform: scale(1.2);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(0.9);
+    }
+    75% {
+        transform: scale(1.1);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
 .card-deck {
     display: flex;
     flex-wrap: wrap;
