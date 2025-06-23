@@ -8,6 +8,7 @@ A real-time web application for agile teams to estimate user stories using the p
 - Standard agile story point values (1, 2, 3, 5, 8, 13, 21, ?)
 - Role-based access (Scrum Master, Product Owner, Team Member, Observer)
 - Vote revealing controlled by Scrum Master or Product Owner
+- 10-second countdown timer with explosion animation
 - JIRA integration for viewing tickets directly
 - Statistical analysis of votes (average, median, mode)
 - Real-time updates using WebSockets
@@ -46,6 +47,15 @@ You can add user stories in two ways:
 4. The Scrum Master or Product Owner can reveal all votes simultaneously
 5. Review the voting statistics
 6. Reset voting for the next story
+
+### Using the Timer
+
+1. Only Scrum Masters and Product Owners can control the timer
+2. Click the play button to start a 10-second countdown
+3. The timer changes color as time decreases (yellow at 5 seconds, red at 3 seconds)
+4. When the timer reaches zero, an explosion animation plays
+5. Click the reset button to set the timer back to 10 seconds
+6. The timer automatically resets when voting is reset
 
 ## JIRA Integration
 
@@ -94,10 +104,26 @@ npm start
 
 The application supports up to 20 participants in a single room, all interacting in real-time.
 
+## Deployment
+
+### Deploying to Render.com
+
+1. Create an account on [Render.com](https://render.com)
+2. Click "New" and select "Web Service"
+3. Connect your GitHub repository
+4. Configure the service with these settings:
+   - Name: planning-poker (or your preferred name)
+   - Environment: Node
+   - Build Command: `npm install`
+   - Start Command: `npm start`
+   - Plan: Free tier
+5. Click "Create Web Service"
+6. Your application will be deployed at a URL like `https://planning-poker.onrender.com`
+
 ## Future Enhancements
 
 - Persistent storage for session history
 - Enhanced JIRA integration with two-way updates
+- Customizable timer duration
 - Custom card values
-- Timer functionality
 - Export of estimation results
