@@ -393,62 +393,141 @@ function connectToJira() {
         return;
     }
     
-    // In a real application, you would validate the credentials with the JIRA API
-    // For this demo, we'll simulate a successful connection
-    jiraConnection = {
-        connected: true,
-        url: url,
-        email: email,
-        token: token
-    };
+    // Show loading state
+    domElements.jiraConnect.textContent = 'Connecting...';
+    domElements.jiraConnect.disabled = true;
     
-    // Update UI
-    domElements.jiraLoginSection.classList.add('hidden');
-    domElements.jiraConnectedSection.classList.remove('hidden');
+    // Connect to JIRA via our proxy endpoint
+    fetch('/api/jira/connect', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            url: url,
+            email: email,
+            token: token
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Reset button state
+        domElements.jiraConnect.textContent = 'Connect';
+        domElements.jiraConnect.disabled = false;
+        
+        if (data.success) {
+            // Store JIRA connection info
+            jiraConnection = {
+                connected: true,
+                url: url,
+                email: email,
+                token: token
+            };
+            
+            // Update UI
+            domElements.jiraLoginSection.classList.add('hidden');
+            domElements.jiraConnectedSection.classList.remove('hidden');
+        } else {
+            alert('Failed to connect to JIRA: ' + (data.error || 'Unknown error'));
+        }
+    })
+    .catch(error => {
+        console.error('Error connecting to JIRA:', error);
+        domElements.jiraConnect.textContent = 'Connect';
+        domElements.jiraConnect.disabled = false;
+        alert('Failed to connect to JIRA. Please check your credentials and try again.');
+    });
 }
 
 // Load JIRA issue
 function loadJiraIssue() {
-    const issueId = domElements.jiraIssue.value.trim();
+    const issueKey = domElements.jiraIssue.value.trim();
     
-    if (!issueId) {
-        alert('Please enter a JIRA issue ID');
+    if (!issueKey) {
+        alert('Please enter a JIRA issue key (e.g., PROJECT-123)');
         return;
     }
     
-    // In a real application, you would fetch the issue from the JIRA API
-    // For this demo, we'll simulate a successful response
-    const mockIssue = {
-        id: issueId,
-        title: `Sample Story: ${issueId}`,
-        description: 'This is a sample user story description that would be fetched from JIRA. It includes acceptance criteria and other details relevant to the story.',
-        link: `${jiraConnection.url}/browse/${issueId}`
-    };
+    // Show loading state
+    domElements.loadIssue.textContent = 'Loading...';
+    domElements.loadIssue.disabled = true;
     
-    // Update the current story
-    currentStory = mockIssue;
-    
-    // Display the story
-    displayStory();
+    // Fetch the issue from the JIRA API via our proxy
+    fetch(`/api/jira/issue/${issueKey}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Reset button state
+            domElements.loadIssue.textContent = 'Load';
+            domElements.loadIssue.disabled = false;
+            
+            // Extract relevant information from the JIRA issue
+            const issue = {
+                id: data.key,
+                title: data.fields.summary,
+                description: data.fields.description || 'No description provided',
+                link: `${jiraConnection.url}/browse/${data.key}`
+            };
+            
+            // Update the current story
+            currentStory = issue;
+            
+            // Display the story
+            displayStory();
+            
+            // Broadcast the story to all participants
+            socket.emit('add-story', {
+                roomId: roomId,
+                story: currentStory
+            });
+        })
+        .catch(error => {
+            console.error('Error loading JIRA issue:', error);
+            domElements.loadIssue.textContent = 'Load';
+            domElements.loadIssue.disabled = false;
+            alert('Failed to load JIRA issue. Please check the issue key and try again.');
+        });
 }
 
 // Disconnect from JIRA
 function disconnectJira() {
-    jiraConnection = {
-        connected: false,
-        url: '',
-        email: '',
-        token: ''
-    };
+    // Show loading state
+    domElements.disconnectJira.textContent = 'Disconnecting...';
+    domElements.disconnectJira.disabled = true;
     
-    // Clear form fields
-    domElements.jiraUrl.value = '';
-    domElements.jiraEmail.value = '';
-    domElements.jiraToken.value = '';
-    
-    // Update UI
-    domElements.jiraLoginSection.classList.remove('hidden');
-    domElements.jiraConnectedSection.classList.add('hidden');
+    // Call the disconnect endpoint
+    fetch('/api/jira/disconnect')
+        .then(response => response.json())
+        .then(() => {
+            // Reset connection state
+            jiraConnection = {
+                connected: false,
+                url: '',
+                email: '',
+                token: ''
+            };
+            
+            // Clear form fields
+            domElements.jiraUrl.value = '';
+            domElements.jiraEmail.value = '';
+            domElements.jiraToken.value = '';
+            
+            // Update UI
+            domElements.jiraLoginSection.classList.remove('hidden');
+            domElements.jiraConnectedSection.classList.add('hidden');
+        })
+        .catch(error => {
+            console.error('Error disconnecting from JIRA:', error);
+        })
+        .finally(() => {
+            // Reset button state
+            domElements.disconnectJira.textContent = 'Disconnect';
+            domElements.disconnectJira.disabled = false;
+        });
 }
 
 // Add a manual story
@@ -593,52 +672,113 @@ function displayResults() {
 
 // Calculate and display voting statistics
 function calculateAndDisplayStatistics() {
-    const votes = participants
-        .filter(p => p.role !== 'observer' && p.hasVoted && p.vote !== '?')
-        .map(p => parseInt(p.vote))
-        .filter(vote => !isNaN(vote));
+    // Get all numeric votes
+    const numericVotes = participants
+        .filter(p => p.role !== 'observer' && p.hasVoted && !isNaN(parseInt(p.vote)))
+        .map(p => parseInt(p.vote));
     
-    if (votes.length === 0) {
-        domElements.averageVote.textContent = '-';
-        domElements.medianVote.textContent = '-';
-        domElements.modeVote.textContent = '-';
+    if (numericVotes.length === 0) {
+        domElements.averageVote.textContent = 'N/A';
+        domElements.medianVote.textContent = 'N/A';
+        domElements.modeVote.textContent = 'N/A';
         return;
     }
     
     // Calculate average
-    const sum = votes.reduce((acc, vote) => acc + vote, 0);
-    const average = sum / votes.length;
+    const sum = numericVotes.reduce((a, b) => a + b, 0);
+    const average = sum / numericVotes.length;
     domElements.averageVote.textContent = average.toFixed(1);
     
     // Calculate median
-    const sortedVotes = [...votes].sort((a, b) => a - b);
-    let median;
-    if (sortedVotes.length % 2 === 0) {
-        median = (sortedVotes[sortedVotes.length / 2 - 1] + sortedVotes[sortedVotes.length / 2]) / 2;
-    } else {
-        median = sortedVotes[Math.floor(sortedVotes.length / 2)];
-    }
+    const sortedVotes = [...numericVotes].sort((a, b) => a - b);
+    const middle = Math.floor(sortedVotes.length / 2);
+    const median = sortedVotes.length % 2 === 0
+        ? (sortedVotes[middle - 1] + sortedVotes[middle]) / 2
+        : sortedVotes[middle];
     domElements.medianVote.textContent = median;
     
     // Calculate mode
     const voteCounts = {};
-    votes.forEach(vote => {
+    numericVotes.forEach(vote => {
         voteCounts[vote] = (voteCounts[vote] || 0) + 1;
     });
     
+    let mode = null;
     let maxCount = 0;
-    let modes = [];
     
     for (const vote in voteCounts) {
         if (voteCounts[vote] > maxCount) {
             maxCount = voteCounts[vote];
-            modes = [vote];
-        } else if (voteCounts[vote] === maxCount) {
-            modes.push(vote);
+            mode = vote;
         }
     }
     
-    domElements.modeVote.textContent = modes.join(', ');
+    domElements.modeVote.textContent = mode;
+    
+    // If we have a JIRA issue and a consensus (mode), show the update button
+    if (jiraConnection.connected && currentStory && currentStory.id && mode) {
+        // Add update button if it doesn't exist
+        if (!document.getElementById('update-jira-points')) {
+            const updateButton = document.createElement('button');
+            updateButton.id = 'update-jira-points';
+            updateButton.textContent = 'Update JIRA Story Points';
+            updateButton.classList.add('primary-button');
+            updateButton.addEventListener('click', () => updateJiraStoryPoints(currentStory.id, mode));
+            
+            // Add button after the statistics
+            document.getElementById('vote-summary').appendChild(updateButton);
+        }
+    }
+}
+
+// Update JIRA story points
+function updateJiraStoryPoints(issueKey, points) {
+    if (!jiraConnection.connected || !issueKey || !points) {
+        alert('Cannot update story points: missing required information');
+        return;
+    }
+    
+    const updateButton = document.getElementById('update-jira-points');
+    if (updateButton) {
+        updateButton.textContent = 'Updating...';
+        updateButton.disabled = true;
+    }
+    
+    // Call the API to update story points
+    fetch(`/api/jira/update-points/${issueKey}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            points: points,
+            // You can specify a custom field ID if needed
+            fieldId: 'customfield_10002' // This might need to be configured per JIRA instance
+        })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            alert(`Successfully updated story points for ${issueKey} to ${points}`);
+        } else {
+            alert(`Failed to update story points: ${data.error || 'Unknown error'}`);
+        }
+    })
+    .catch(error => {
+        console.error('Error updating story points:', error);
+        alert('Failed to update story points. Please check the console for details.');
+    })
+    .finally(() => {
+        if (updateButton) {
+            updateButton.textContent = 'Update JIRA Story Points';
+            updateButton.disabled = false;
+        }
+    });
 }
 
 // Generate a random room ID

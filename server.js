@@ -2,13 +2,150 @@ const express = require('express');
 const http = require('http');
 const socketIO = require('socket.io');
 const path = require('path');
+const axios = require('axios');
+const session = require('express-session');
 
 const app = express();
 const server = http.createServer(app);
 const io = socketIO(server);
 
-// Serve static files
+// Middleware
 app.use(express.static(path.join(__dirname)));
+app.use(express.json());
+app.use(session({
+    secret: 'planning-poker-secret',
+    resave: false,
+    saveUninitialized: true,
+    cookie: { secure: false } // Set to true if using HTTPS
+}));
+
+// JIRA API proxy endpoints
+app.post('/api/jira/connect', (req, res) => {
+    const { url, email, token } = req.body;
+    
+    if (!url || !email || !token) {
+        return res.status(400).json({ success: false, error: 'Missing required fields' });
+    }
+    
+    // Store credentials in session
+    req.session.jiraCredentials = { url, email, token };
+    
+    // Test connection with better error handling
+    const apiUrl = url.endsWith('/') ? `${url}rest/api/2/myself` : `${url}/rest/api/2/myself`;
+    
+    console.log(`Attempting to connect to JIRA at: ${apiUrl}`);
+    
+    axios({
+        method: 'get',
+        url: apiUrl,
+        auth: {
+            username: email,
+            password: token
+        },
+        timeout: 10000 // 10 second timeout
+    })
+    .then(response => {
+        console.log('JIRA connection successful');
+        res.json({ success: true, user: response.data });
+    })
+    .catch(error => {
+        console.error('JIRA connection failed:', error.message);
+        
+        // More detailed error information
+        if (error.response) {
+            // The request was made and the server responded with a status code
+            console.error('Status:', error.response.status);
+            console.error('Data:', error.response.data);
+            res.status(error.response.status).json({ 
+                success: false, 
+                error: `Authentication failed: ${error.response.status} ${error.response.statusText}`,
+                details: error.response.data
+            });
+        } else if (error.request) {
+            // The request was made but no response was received
+            console.error('No response received:', error.request);
+            res.status(500).json({ 
+                success: false, 
+                error: 'No response from JIRA server. Please check the URL and your network connection.'
+            });
+        } else {
+            // Something happened in setting up the request
+            res.status(500).json({ success: false, error: `Request error: ${error.message}` });
+        }
+    });
+});
+
+app.get('/api/jira/issue/:issueKey', (req, res) => {
+    if (!req.session || !req.session.jiraCredentials) {
+        return res.status(401).json({ error: 'Not authenticated with JIRA' });
+    }
+    
+    const { url, email, token } = req.session.jiraCredentials;
+    const issueKey = req.params.issueKey;
+    
+    axios({
+        method: 'get',
+        url: `${url}/rest/api/2/issue/${issueKey}`,
+        auth: {
+            username: email,
+            password: token
+        }
+    })
+    .then(response => {
+        console.log(`Successfully fetched JIRA issue ${issueKey}`);
+        res.json(response.data);
+    })
+    .catch(error => {
+        console.error(`Failed to fetch JIRA issue ${issueKey}:`, error.message);
+        res.status(error.response?.status || 500).json({ 
+            error: error.response?.data || 'Failed to fetch issue' 
+        });
+    });
+});
+
+app.post('/api/jira/update-points/:issueKey', (req, res) => {
+    if (!req.session || !req.session.jiraCredentials) {
+        return res.status(401).json({ error: 'Not authenticated with JIRA' });
+    }
+    
+    const { url, email, token } = req.session.jiraCredentials;
+    const { points, fieldId } = req.body;
+    const issueKey = req.params.issueKey;
+    
+    // Default to customfield_10002 if not specified
+    const storyPointsField = fieldId || 'customfield_10002';
+    
+    axios({
+        method: 'put',
+        url: `${url}/rest/api/2/issue/${issueKey}`,
+        auth: {
+            username: email,
+            password: token
+        },
+        data: {
+            fields: {
+                [storyPointsField]: parseFloat(points)
+            }
+        }
+    })
+    .then(() => {
+        console.log(`Updated story points for ${issueKey} to ${points}`);
+        res.json({ success: true });
+    })
+    .catch(error => {
+        console.error(`Failed to update story points for ${issueKey}:`, error.message);
+        res.status(error.response?.status || 500).json({ 
+            error: error.response?.data || 'Failed to update issue' 
+        });
+    });
+});
+
+app.get('/api/jira/disconnect', (req, res) => {
+    if (req.session) {
+        delete req.session.jiraCredentials;
+    }
+    res.json({ success: true });
+});
 
 // Store rooms and participants
 const rooms = {};
