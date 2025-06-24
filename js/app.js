@@ -18,8 +18,9 @@ let jiraConnection = {
 };
 
 // Timer variables
-let timerInterval = null;
+let timerInterval;
 let timerValue = 10;
+let defaultTimerValue = 10;
 let timerRunning = false;
 
 // DOM Elements
@@ -506,7 +507,7 @@ function updateParticipantsList() {
         li.innerHTML = `
             <span>
                 <span class="participant-status ${statusClass}"></span>
-                ${participant.name}
+                <span class="participant-name">${participant.name}</span>
             </span>
             <span>${statusText}</span>
         `;

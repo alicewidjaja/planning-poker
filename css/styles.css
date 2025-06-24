@@ -128,16 +128,22 @@ footer {
 /* Participants */
 #participants-list {
     list-style: none;
-    max-height: 300px;
-    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 15px;
 }
 
 #participants-list li {
-    padding: 8px;
-    border-bottom: 1px solid #eee;
+    padding: 8px 12px;
+    border: 1px solid #eee;
+    border-radius: var(--border-radius);
     display: flex;
     justify-content: space-between;
     align-items: center;
+    background-color: white;
+    box-shadow: var(--box-shadow);
+    width: 100%;
 }
 
 .participant-status {
@@ -146,6 +152,13 @@ footer {
     border-radius: 50%;
     display: inline-block;
     margin-right: 8px;
+}
+
+.participant-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 150px;
 }
 
 .status-waiting {
@@ -359,8 +372,10 @@ footer {
 #vote-cards-container {
     display: flex;
     flex-wrap: wrap;
-    gap: 20px;
+    gap: 15px;
     margin-bottom: 20px;
+    justify-content: flex-start;
+    max-width: 100%;
 }
 
 .vote-card {
@@ -371,21 +386,21 @@ footer {
 }
 
 .vote-card-value {
-    width: 60px;
-    height: 90px;
+    width: 50px;
+    height: 75px;
     background-color: white;
     border: 2px solid var(--primary-color);
     border-radius: var(--border-radius);
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: 18px;
+    font-size: 16px;
     font-weight: bold;
 }
 
 .vote-card-name {
-    font-size: 12px;
-    max-width: 80px;
+    font-size: 11px;
+    max-width: 60px;
     text-align: center;
     overflow: hidden;
     text-overflow: ellipsis;
