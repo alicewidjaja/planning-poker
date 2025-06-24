@@ -9,6 +9,28 @@
     --light-text: #fff;
     --border-radius: 8px;
     --box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    
+    /* Card and container backgrounds */
+    --card-bg: white;
+    --container-bg: white;
+    --border-color: #eee;
+}
+
+/* Dark Mode Variables */
+body.dark-mode {
+    --primary-color: #4dabf7;
+    --secondary-color: #51cf66;
+    --accent-color: #ff6b6b;
+    --light-bg: #1e1e1e;
+    --dark-bg: #121212;
+    --text-color: #e0e0e0;
+    --light-text: #f8f9fa;
+    --box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    
+    /* Card and container backgrounds */
+    --card-bg: #2d2d2d;
+    --container-bg: #2d2d2d;
+    --border-color: #444;
 }
 
 * {
@@ -88,7 +110,7 @@ header h1 {
 }
 
 .sidebar {
-    background-color: white;
+    background-color: var(--container-bg);
     padding: 20px;
     border-radius: var(--border-radius);
     box-shadow: var(--box-shadow);
@@ -101,7 +123,7 @@ header h1 {
 }
 
 .story-display, .voting-area, .results-area {
-    background-color: white;
+    background-color: var(--container-bg);
     padding: 20px;
     border-radius: var(--border-radius);
     box-shadow: var(--box-shadow);
@@ -110,9 +132,9 @@ header h1 {
 footer {
     margin-top: 40px;
     text-align: center;
-    color: #7f8c8d;
+    color: var(--text-color);
     padding: 20px 0;
-    border-top: 1px solid #ddd;
+    border-top: 1px solid var(--border-color);
 }
 
 /* Jira Integration */
@@ -136,12 +158,12 @@ footer {
 
 #participants-list li {
     padding: 8px 12px;
-    border: 1px solid #eee;
+    border: 1px solid var(--border-color);
     border-radius: var(--border-radius);
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background-color: white;
+    background-color: var(--card-bg);
     box-shadow: var(--box-shadow);
     width: 100%;
 }
@@ -179,6 +201,7 @@ footer {
     padding: 15px;
     border-radius: var(--border-radius);
     margin-top: 15px;
+    color: var(--text-color);
 }
 
 #story-title {
@@ -205,6 +228,7 @@ footer {
     padding: 15px;
     background-color: var(--light-bg);
     border-radius: var(--border-radius);
+    color: var(--text-color);
 }
 
 /* Voting Area */
@@ -215,7 +239,7 @@ footer {
     align-items: center;
     margin-bottom: 15px;
     padding: 10px 15px;
-    background-color: white;
+    background-color: var(--card-bg);
     border: 1px solid var(--primary-color);
     border-radius: var(--border-radius);
     box-shadow: var(--box-shadow);
@@ -328,7 +352,7 @@ footer {
 .card {
     width: 80px;
     height: 120px;
-    background-color: white;
+    background-color: var(--card-bg);
     border: 2px solid var(--primary-color);
     border-radius: var(--border-radius);
     display: flex;
@@ -339,6 +363,7 @@ footer {
     cursor: pointer;
     transition: all 0.3s ease;
     box-shadow: var(--box-shadow);
+    color: var(--text-color);
 }
 
 .card:hover {
@@ -388,7 +413,7 @@ footer {
 .vote-card-value {
     width: 50px;
     height: 75px;
-    background-color: white;
+    background-color: var(--card-bg);
     border: 2px solid var(--primary-color);
     border-radius: var(--border-radius);
     display: flex;
@@ -396,6 +421,7 @@ footer {
     align-items: center;
     font-size: 16px;
     font-weight: bold;
+    color: var(--text-color);
 }
 
 .vote-card-name {
@@ -404,7 +430,40 @@ footer {
     text-align: center;
     overflow: hidden;
     text-overflow: ellipsis;
-    white-space: nowrap;
+}
+
+/* Theme Toggle Button */
+#theme-toggle {
+    background-color: var(--primary-color);
+    color: var(--light-text);
+    border: none;
+    border-radius: var(--border-radius);
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    margin-left: 10px;
+    transition: all 0.3s ease;
+}
+
+#theme-toggle:hover {
+    background-color: #2980b9;
+    color: var(--light-text);
+}
+
+body.dark-mode #theme-toggle i.fa-moon {
+    display: none;
+}
+
+body.dark-mode #theme-toggle i.fa-sun {
+    display: inline;
+}
+
+#theme-toggle i.fa-sun {
+    display: none;
+}
+
+body.dark-mode #theme-toggle {
+    color: var(--light-text);
 }
 
 #vote-summary {

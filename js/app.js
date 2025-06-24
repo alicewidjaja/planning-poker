@@ -19,8 +19,8 @@ let jiraConnection = {
 
 // Timer variables
 let timerInterval;
-let timerValue = 10;
-let defaultTimerValue = 10;
+let timerValue = 5;
+let defaultTimerValue = 5;
 let timerRunning = false;
 
 // DOM Elements
@@ -28,6 +28,7 @@ const domElements = {
     roomId: document.getElementById('room-id'),
     copyRoomLink: document.getElementById('copy-room-link'),
     createNewRoom: document.getElementById('create-new-room'),
+    themeToggle: document.getElementById('theme-toggle'),
     participantsList: document.getElementById('participants-list'),
     userName: document.getElementById('user-name'),
     userRole: document.getElementById('user-role'),
@@ -116,6 +117,12 @@ function setupEventListeners() {
         domElements.manualStoryForm.classList.toggle('hidden');
     });
     domElements.submitManualStory.addEventListener('click', addManualStory);
+    
+    // Theme toggle
+    domElements.themeToggle.addEventListener('click', toggleDarkMode);
+    
+    // Load saved theme preference
+    loadThemePreference();
 }
 
 // Initialize WebSocket connection
@@ -271,8 +278,10 @@ function setupSocketListeners() {
         }
     });
     
-    socket.on('timer-reset', () => {
-        resetTimerFunction();
+    socket.on('timer-reset', (data) => {
+        if (!data || data.roomId === roomId) {
+            resetTimerFunction();
+        }
     });
     
     // Connection error
@@ -548,9 +557,26 @@ function displayResults() {
     // Show results display
     domElements.resultsDisplay.classList.remove('hidden');
     
-    // Display vote cards
+    // Group participants by vote
+    const voteGroups = {};
+    
     participants.forEach(participant => {
         if (participant.role !== 'observer' && participant.hasVoted) {
+            if (!voteGroups[participant.vote]) {
+                voteGroups[participant.vote] = [];
+            }
+            voteGroups[participant.vote].push(participant);
+        }
+    });
+    
+    // Display vote cards grouped by vote value
+    Object.keys(voteGroups).sort((a, b) => {
+        // Sort numerically, but keep '?' at the end
+        if (a === '?') return 1;
+        if (b === '?') return -1;
+        return parseInt(a) - parseInt(b);
+    }).forEach(voteValue => {
+        voteGroups[voteValue].forEach(participant => {
             const voteCard = document.createElement('div');
             voteCard.className = 'vote-card';
             voteCard.innerHTML = `
@@ -558,7 +584,7 @@ function displayResults() {
                 <div class="vote-card-name">${participant.name}</div>
             `;
             domElements.voteCardsContainer.appendChild(voteCard);
-        }
+        });
     });
     
     // Calculate statistics
@@ -629,8 +655,8 @@ function generateUserId() {
 function startTimer() {
     if (timerRunning) return;
     
-    // Reset timer value to 10 seconds
-    timerValue = 10;
+    // Reset timer value to 5 seconds
+    timerValue = 5;
     updateTimerDisplay();
     
     // Remove any existing explosion animation
@@ -668,7 +694,7 @@ function resetTimerFunction() {
     clearInterval(timerInterval);
     
     // Reset timer value and update display
-    timerValue = 10;
+    timerValue = 5;
     timerRunning = false;
     updateTimerDisplay();
     
@@ -712,6 +738,23 @@ function playExplosionAnimation() {
         domElements.timerValue.classList.remove('explosion-animation');
         domElements.timerValue.textContent = '0';
     }, 1500);
+}
+
+// Toggle dark mode
+function toggleDarkMode() {
+    document.body.classList.toggle('dark-mode');
+    
+    // Save preference to localStorage
+    const isDarkMode = document.body.classList.contains('dark-mode');
+    localStorage.setItem('darkMode', isDarkMode);
+}
+
+// Load theme preference from localStorage
+function loadThemePreference() {
+    const isDarkMode = localStorage.getItem('darkMode') === 'true';
+    if (isDarkMode) {
+        document.body.classList.add('dark-mode');
+    }
 }
 
 // Initialize the application when the DOM is loaded
