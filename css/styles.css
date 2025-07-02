@@ -210,6 +210,13 @@ footer {
     background-color: var(--card-bg);
     box-shadow: var(--box-shadow);
     width: 100%;
+    transition: all 0.3s ease;
+}
+
+#participants-list li.current-user {
+    background: linear-gradient(to right, rgba(99, 102, 241, 0.1), transparent);
+    border-left: 3px solid var(--primary-color);
+    font-weight: 500;
 }
 
 .participant-status {
@@ -546,10 +553,19 @@ body.dark-mode #theme-toggle i.fa-moon {
 
 body.dark-mode #theme-toggle i.fa-sun {
     display: inline;
+    margin-right: 8px;
+}
+
+#theme-toggle i {
+    margin-right: 8px;
 }
 
 #theme-toggle i.fa-sun {
     display: none;
+}
+
+#theme-toggle i.fa-moon {
+    display: inline;
 }
 
 body.dark-mode #theme-toggle {

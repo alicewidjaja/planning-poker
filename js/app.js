@@ -592,6 +592,11 @@ function updateParticipantsList() {
             statusText = 'Voted';
         }
         
+        // Check if this participant is the current user
+        if (participant.id === currentUser.id) {
+            li.classList.add('current-user');
+        }
+        
         li.innerHTML = `
             <span>
                 <span class="participant-status ${statusClass}"></span>
@@ -648,6 +653,20 @@ function displayResults() {
         }
     });
     
+    // Assign highlight classes to different vote values
+    // We'll use up to 6 different highlight styles
+    const uniqueVoteValues = Object.keys(voteGroups).filter(vote => vote !== '?');
+    const highlightMap = {};
+    
+    // Assign highlight classes only to values that appear more than once
+    let highlightIndex = 1;
+    uniqueVoteValues.forEach(voteValue => {
+        if (voteGroups[voteValue].length > 1 && highlightIndex <= 6) {
+            highlightMap[voteValue] = `highlight-${highlightIndex}`;
+            highlightIndex++;
+        }
+    });
+    
     // Display vote cards grouped by vote value
     Object.keys(voteGroups).sort((a, b) => {
         // Sort numerically, but keep '?' at the end
@@ -658,8 +677,12 @@ function displayResults() {
         voteGroups[voteValue].forEach(participant => {
             const voteCard = document.createElement('div');
             voteCard.className = 'vote-card';
+            
+            // Determine if this vote value should be highlighted
+            const highlightClass = highlightMap[voteValue] || '';
+            
             voteCard.innerHTML = `
-                <div class="vote-card-value">${participant.vote}</div>
+                <div class="vote-card-value ${highlightClass}">${participant.vote}</div>
                 <div class="vote-card-name">${participant.name}</div>
             `;
             domElements.voteCardsContainer.appendChild(voteCard);
