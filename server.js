@@ -273,17 +273,15 @@ io.on('connection', (socket) => {
     
     // Add story
     socket.on('add-story', (data) => {
-        const { title, description, link } = data;
-        const roomId = socket.roomId;
+        const { roomId, story } = data;
         
         if (!roomId || !rooms[roomId]) return;
         
         // Update story
-        rooms[roomId].story = {
-            title,
-            description,
-            link
-        };
+        rooms[roomId].story = story;
+        
+        // Log the story being added
+        console.log('Adding story to room:', roomId, story);
         
         // Notify all participants in the room
         io.to(roomId).emit('story-added', rooms[roomId].story);

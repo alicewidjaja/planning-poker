@@ -261,7 +261,12 @@ function setupSocketListeners() {
     
     // Story added
     socket.on('story-added', (story) => {
-        console.log('Story added:', story);
+        console.log('Story added event received:', story);
+        
+        if (!story || Object.keys(story).length === 0) {
+            console.warn('Received empty story object');
+            return;
+        }
         
         // Update current story
         currentStory = story;
@@ -465,6 +470,8 @@ function loadJiraIssue() {
             domElements.loadIssue.textContent = 'Load';
             domElements.loadIssue.disabled = false;
             
+            console.log('JIRA API response:', data);
+            
             // Extract relevant information from the JIRA issue
             const issue = {
                 id: data.key,
@@ -472,6 +479,8 @@ function loadJiraIssue() {
                 description: data.fields.description || 'No description provided',
                 link: `${jiraConnection.url}/browse/${data.key}`
             };
+            
+            console.log('Formatted issue:', issue);
             
             // Update the current story
             currentStory = issue;
@@ -482,8 +491,10 @@ function loadJiraIssue() {
             // Broadcast the story to all participants
             socket.emit('add-story', {
                 roomId: roomId,
-                story: currentStory
+                story: issue
             });
+            
+            console.log('Emitted add-story event with:', { roomId, story: issue });
         })
         .catch(error => {
             console.error('Error loading JIRA issue:', error);
@@ -557,21 +568,35 @@ function addManualStory() {
 
 // Display the current story
 function displayStory() {
-    if (!currentStory) return;
+    console.log('Displaying story:', currentStory);
     
-    // Update UI
-    domElements.storyTitle.textContent = currentStory.title;
-    domElements.storyDescription.textContent = currentStory.description;
-    
-    if (currentStory.link) {
-        domElements.storyLink.innerHTML = `<a href="${currentStory.link}" target="_blank">View in JIRA</a>`;
-    } else {
-        domElements.storyLink.innerHTML = '';
+    if (!currentStory || Object.keys(currentStory).length === 0) {
+        console.log('No story to display or empty story object');
+        domElements.noStoryMessage.classList.remove('hidden');
+        domElements.storyDetails.classList.add('hidden');
+        return;
     }
     
-    // Show story details and hide no story message
-    domElements.noStoryMessage.classList.add('hidden');
-    domElements.storyDetails.classList.remove('hidden');
+    try {
+        // Update UI
+        domElements.storyTitle.textContent = currentStory.title || 'Untitled Story';
+        domElements.storyDescription.textContent = currentStory.description || 'No description available';
+        
+        if (currentStory.link) {
+            domElements.storyLink.innerHTML = `<a href="${currentStory.link}" target="_blank">View in JIRA</a>`;
+        } else {
+            domElements.storyLink.innerHTML = '';
+        }
+        
+        // Show story details and hide no story message
+        domElements.noStoryMessage.classList.add('hidden');
+        domElements.storyDetails.classList.remove('hidden');
+        
+        console.log('Story displayed successfully');
+    } catch (error) {
+        console.error('Error displaying story:', error);
+        alert('There was an error displaying the story. Please try again.');
+    }
 }
 
 // Update the participants list
