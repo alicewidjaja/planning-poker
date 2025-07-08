@@ -683,13 +683,12 @@ function displayResults() {
     const uniqueVoteValues = Object.keys(voteGroups).filter(vote => vote !== '?');
     const highlightMap = {};
     
-    // Assign highlight classes only to values that appear more than once
+    // Assign highlight classes to all vote values except '?'
     let highlightIndex = 1;
     uniqueVoteValues.forEach(voteValue => {
-        if (voteGroups[voteValue].length > 1 && highlightIndex <= 6) {
-            highlightMap[voteValue] = `highlight-${highlightIndex}`;
-            highlightIndex++;
-        }
+        // Assign a highlight class to each unique vote value
+        highlightMap[voteValue] = `highlight-${highlightIndex}`;
+        highlightIndex = highlightIndex % 6 + 1; // Cycle through 1-6
     });
     
     // Display vote cards grouped by vote value

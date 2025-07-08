@@ -504,7 +504,8 @@ footer {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 5px;
+    margin: 0 5px 10px;
+    width: 70px;
 }
 
 .vote-card-value {
@@ -517,16 +518,50 @@ footer {
     justify-content: center;
     align-items: center;
     font-size: 16px;
+    transition: all 0.3s ease;
     font-weight: bold;
     color: var(--text-color);
 }
 
 .vote-card-name {
-    font-size: 11px;
-    max-width: 60px;
+    font-size: 12px;
+    margin-top: 5px;
     text-align: center;
+    max-width: 100%;
     overflow: hidden;
     text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Highlight styles for matching vote cards */
+.vote-card-value.highlight-1 {
+    background-color: rgba(99, 102, 241, 0.15);
+    border-color: rgba(99, 102, 241, 0.8);
+}
+
+.vote-card-value.highlight-2 {
+    background-color: rgba(139, 92, 246, 0.15);
+    border-color: rgba(139, 92, 246, 0.8);
+}
+
+.vote-card-value.highlight-3 {
+    background-color: rgba(168, 85, 247, 0.15);
+    border-color: rgba(168, 85, 247, 0.8);
+}
+
+.vote-card-value.highlight-4 {
+    background-color: rgba(217, 70, 239, 0.15);
+    border-color: rgba(217, 70, 239, 0.8);
+}
+
+.vote-card-value.highlight-5 {
+    background-color: rgba(236, 72, 153, 0.15);
+    border-color: rgba(236, 72, 153, 0.8);
+}
+
+.vote-card-value.highlight-6 {
+    background-color: rgba(244, 114, 182, 0.15);
+    border-color: rgba(244, 114, 182, 0.8);
 }
 
 /* Theme Toggle Button */
