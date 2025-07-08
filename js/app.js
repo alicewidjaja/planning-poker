@@ -85,6 +85,9 @@ function init() {
 
     // Set up event listeners
     setupEventListeners();
+    
+    // Disable card deck initially until user joins
+    disableCardDeck();
 }
 
 // Set up all event listeners
@@ -134,6 +137,38 @@ function initializeSocket() {
     
     // Set up socket event listeners
     setupSocketListeners();
+}
+
+// Disable the card deck until user joins
+function disableCardDeck() {
+    const cards = document.querySelectorAll('.card');
+    cards.forEach(card => {
+        card.classList.add('disabled');
+    });
+    
+    // Add a message above the card deck
+    const votingArea = document.querySelector('.voting-area h2');
+    if (!document.getElementById('join-message')) {
+        const joinMessage = document.createElement('div');
+        joinMessage.id = 'join-message';
+        joinMessage.className = 'join-message';
+        joinMessage.textContent = 'Please enter your name and join the session to vote';
+        votingArea.insertAdjacentElement('afterend', joinMessage);
+    }
+}
+
+// Enable the card deck after user joins
+function enableCardDeck() {
+    const cards = document.querySelectorAll('.card');
+    cards.forEach(card => {
+        card.classList.remove('disabled');
+    });
+    
+    // Remove the message
+    const joinMessage = document.getElementById('join-message');
+    if (joinMessage) {
+        joinMessage.remove();
+    }
 }
 
 // Set up Socket.IO event listeners
@@ -347,11 +382,15 @@ function joinSession() {
         name: name,
         role: role
     });
+    
+    // Enable the card deck now that the user has joined
+    enableCardDeck();
 }
 
 // Handle card click
 function handleCardClick(event) {
-    if (!event.target.classList.contains('card')) return;
+    // Return if the card deck is disabled or if the clicked element is not a card
+    if (!event.target.classList.contains('card') || event.target.classList.contains('disabled')) return;
     
     // Get the card value
     const value = event.target.dataset.value;
