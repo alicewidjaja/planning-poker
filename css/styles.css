@@ -502,6 +502,38 @@ footer {
     display: flex;
     gap: 10px;
     margin-bottom: 20px;
+    position: relative;
+}
+
+.moderator-controls button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    position: relative;
+}
+
+/* Add a tooltip container for disabled buttons */
+.moderator-controls button:disabled::after {
+    content: 'Only available for Scrum Master and Product Owner';
+    position: absolute;
+    bottom: 125%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(55, 65, 81, 0.9);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    white-space: nowrap;
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.3s, visibility 0.3s;
+    z-index: 10;
+}
+
+/* Show tooltip on hover */
+.moderator-controls button:disabled:hover::after {
+    visibility: visible;
+    opacity: 1;
 }
 
 #voting-status {

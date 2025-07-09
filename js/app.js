@@ -98,6 +98,7 @@ function setupEventListeners() {
 
     // User management
     domElements.joinSession.addEventListener('click', joinSession);
+    domElements.userRole.addEventListener('change', showRoleCapabilities);
 
     // Voting
     domElements.cardDeck.addEventListener('click', handleCardClick);
@@ -385,6 +386,9 @@ function joinSession() {
     
     // Enable the card deck now that the user has joined
     enableCardDeck();
+    
+    // Update moderator controls based on role
+    updateModeratorControls();
 }
 
 // Handle card click
@@ -693,6 +697,42 @@ function updateModeratorControls() {
         domElements.revealVotes.disabled = true;
         domElements.resetVoting.disabled = true;
     }
+}
+
+// Show role capabilities based on selected role
+function showRoleCapabilities() {
+    const role = domElements.userRole.value;
+    let roleMessage = document.getElementById('role-info-message');
+    
+    // Create message element if it doesn't exist
+    if (!roleMessage) {
+        roleMessage = document.createElement('div');
+        roleMessage.id = 'role-info-message';
+        roleMessage.className = 'join-message';
+        // Insert after the user role dropdown
+        domElements.userRole.parentNode.insertBefore(roleMessage, domElements.userRole.nextSibling);
+    }
+    
+    // Set appropriate message based on role
+    if (role === 'scrum-master' || role === 'product-owner') {
+        roleMessage.textContent = 'As ' + (role === 'scrum-master' ? 'Scrum Master' : 'Product Owner') + ', you can reveal and reset votes.';
+        roleMessage.style.borderLeftColor = 'var(--primary-color)';
+    } else {
+        roleMessage.textContent = 'As ' + (role === 'team-member' ? 'Team Member' : 'Observer') + ', you can vote but cannot reveal or reset votes.';
+        roleMessage.style.borderLeftColor = 'var(--accent-color)';
+    }
+    
+    // Show the message
+    roleMessage.style.display = 'block';
+    
+    // Hide after 5 seconds
+    setTimeout(() => {
+        roleMessage.style.opacity = '0';
+        setTimeout(() => {
+            roleMessage.style.display = 'none';
+            roleMessage.style.opacity = '1';
+        }, 500);
+    }, 5000);
 }
 
 // Display voting results
