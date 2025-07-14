@@ -87,18 +87,21 @@ body.dark-mode .card {
 }
 
 /* Selected card styling in dark mode */
-body.dark-mode .card.selected {
+body.dark-mode .card.selected,
+body.dark-mode .tshirt-card.selected {
     background-color: #ffffff;
     color: #000000;
     border-color: #ffffff;
     box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
 }
 
-body.dark-mode .card.selected .size-label {
+body.dark-mode .card.selected .size-label,
+body.dark-mode .tshirt-card.selected .size-label {
     color: #000000;
 }
 
-body.dark-mode .card.selected .story-points {
+body.dark-mode .card.selected .story-points,
+body.dark-mode .tshirt-card.selected .story-points {
     color: #000000;
 }
 
@@ -657,6 +660,14 @@ footer {
 }
 
 /* Story points text */
+.story-points {
+    position: absolute;
+    bottom: 15px;
+    font-size: 11pt;
+    font-weight: normal;
+    color: rgba(0, 0, 0, 0.7);
+}
+
 .tshirt-card::after {
     content: attr(data-points);
     position: absolute;
@@ -668,9 +679,15 @@ footer {
     color: white;
     opacity: 0.9;
     font-weight: normal;
-    line-height: 1.2;
     padding: 0 5px;
-    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
+    letter-spacing: 0.5px;
+}
+
+/* Ensure T-shirt story points are black when selected in dark mode */
+body.dark-mode .tshirt-card.selected::after {
+    color: #000000;
+    opacity: 1;
+    text-shadow: none;
 }
 
 /* Selected state */
