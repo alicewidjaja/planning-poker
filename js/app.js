@@ -36,7 +36,7 @@ const domElements = {
     timerValue: document.getElementById('timer-value'),
     startTimer: document.getElementById('start-timer'),
     resetTimer: document.getElementById('reset-timer'),
-    cardDeck: document.querySelector('.card-deck'),
+    cardDeck: document.getElementById('card-deck'),
     selectedVote: document.getElementById('selected-vote'),
     revealVotes: document.getElementById('reveal-votes'),
     resetVoting: document.getElementById('reset-voting'),
@@ -70,19 +70,19 @@ const domElements = {
 
 // Initialize the application
 function init() {
-    // Check if there's a room ID in the URL
+    // Generate a random room ID if none is provided in the URL
     const urlParams = new URLSearchParams(window.location.search);
-    roomId = urlParams.get('room');
-
-    if (roomId) {
-        // Connect to existing room
-        domElements.roomId.textContent = `Room: ${roomId}`;
-        initializeSocket();
-    } else {
-        // Create a new room
-        createNewRoom();
-    }
-
+    roomId = urlParams.get('room') || generateRoomId();
+    
+    // Display the room ID
+    domElements.roomId.textContent = `Room: ${roomId}`;
+    
+    // Initialize WebSocket connection
+    initializeSocket();
+    
+    // Load theme preference
+    loadThemePreference();
+    
     // Set up event listeners
     setupEventListeners();
     
@@ -92,41 +92,39 @@ function init() {
 
 // Set up all event listeners
 function setupEventListeners() {
-    // Room management
-    domElements.copyRoomLink.addEventListener('click', copyRoomLink);
+    // Room creation and joining
     domElements.createNewRoom.addEventListener('click', createNewRoom);
-
-    // User management
+    domElements.copyRoomLink.addEventListener('click', copyRoomLink);
     domElements.joinSession.addEventListener('click', joinSession);
-    domElements.userRole.addEventListener('change', showRoleCapabilities);
-
-    // Voting
-    domElements.cardDeck.addEventListener('click', handleCardClick);
-    
-    // Moderator controls
-    domElements.revealVotes.addEventListener('click', revealVotes);
-    domElements.resetVoting.addEventListener('click', resetVoting);
     
     // Timer controls
     domElements.startTimer.addEventListener('click', startTimer);
     domElements.resetTimer.addEventListener('click', resetTimerFunction);
-
-    // JIRA integration
-    domElements.jiraConnect.addEventListener('click', connectToJira);
-    domElements.loadIssue.addEventListener('click', loadJiraIssue);
-    domElements.disconnectJira.addEventListener('click', disconnectJira);
-
-    // Manual story
-    domElements.addManualStory.addEventListener('click', () => {
-        domElements.manualStoryForm.classList.toggle('hidden');
+    
+    // Voting controls
+    domElements.revealVotes.addEventListener('click', revealVotes);
+    domElements.resetVoting.addEventListener('click', resetVoting);
+    
+    // Card deck - attach event listeners to all cards
+    document.querySelectorAll('.card').forEach(card => {
+        card.addEventListener('click', handleCardClick);
     });
-    domElements.submitManualStory.addEventListener('click', addManualStory);
     
-    // Theme toggle
-    domElements.themeToggle.addEventListener('click', toggleDarkMode);
+    // JIRA integration
+    document.getElementById('connect-jira').addEventListener('click', connectToJira);
+    document.getElementById('load-jira-issue').addEventListener('click', loadJiraIssue);
+    document.getElementById('disconnect-jira').addEventListener('click', disconnectJira);
     
-    // Load saved theme preference
-    loadThemePreference();
+    // Manual story
+    document.getElementById('add-manual-story').addEventListener('click', () => {
+        document.getElementById('manual-story-form').classList.toggle('hidden');
+    });
+    document.getElementById('submit-manual-story').addEventListener('click', addManualStory);
+    
+    // Role selection
+    domElements.userRole.addEventListener('change', showRoleCapabilities);
+    
+    // Theme toggle is handled separately in the DOMContentLoaded event
 }
 
 // Initialize WebSocket connection
@@ -140,35 +138,46 @@ function initializeSocket() {
     setupSocketListeners();
 }
 
-// Disable the card deck until user joins
+// Disable the card deck initially
 function disableCardDeck() {
+    // Disable all cards
     const cards = document.querySelectorAll('.card');
-    cards.forEach(card => {
-        card.classList.add('disabled');
-    });
+    cards.forEach(card => card.classList.add('disabled'));
     
-    // Add a message above the card deck
-    const votingArea = document.querySelector('.voting-area h2');
-    if (!document.getElementById('join-message')) {
-        const joinMessage = document.createElement('div');
-        joinMessage.id = 'join-message';
-        joinMessage.className = 'join-message';
-        joinMessage.textContent = 'Please enter your name and join the session to vote';
-        votingArea.insertAdjacentElement('afterend', joinMessage);
+    // Remove any existing message first to prevent duplicates
+    const existingMessage = document.getElementById('join-message');
+    if (existingMessage) {
+        existingMessage.remove();
+    }
+    
+    // Add a message to inform users to join first
+    const votingArea = document.querySelector('.voting-area');
+    const message = document.createElement('div');
+    message.id = 'join-message';
+    message.classList.add('join-message');
+    message.innerHTML = '<i class="fas fa-exclamation-circle"></i> Please enter your name and join the session to vote';
+    
+    // Insert before the card deck
+    const cardDeck = document.getElementById('card-deck');
+    if (cardDeck && votingArea) {
+        votingArea.insertBefore(message, cardDeck);
+        console.log('Join message added');
+    } else {
+        console.error('Could not find card deck or voting area');
     }
 }
 
 // Enable the card deck after user joins
 function enableCardDeck() {
+    // Enable all cards
     const cards = document.querySelectorAll('.card');
-    cards.forEach(card => {
-        card.classList.remove('disabled');
-    });
+    cards.forEach(card => card.classList.remove('disabled'));
     
-    // Remove the message
+    // Hide the message
     const joinMessage = document.getElementById('join-message');
     if (joinMessage) {
-        joinMessage.remove();
+        joinMessage.classList.add('hidden');
+        console.log('Join message hidden');
     }
 }
 
@@ -395,6 +404,13 @@ function joinSession() {
 function handleCardClick(event) {
     // Return if the card deck is disabled or if the clicked element is not a card
     if (!event.target.classList.contains('card') || event.target.classList.contains('disabled')) return;
+    
+    // Check if user has entered their name and joined the session
+    if (!currentUser.name) {
+        alert('Please enter your name and join the session to vote');
+        domElements.userName.focus();
+        return;
+    }
     
     // Get the card value
     const value = event.target.dataset.value;
@@ -1007,21 +1023,67 @@ function playExplosionAnimation() {
 }
 
 // Toggle dark mode
-function toggleDarkMode() {
-    document.body.classList.toggle('dark-mode');
+function toggleDarkMode(event) {
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
     
-    // Save preference to localStorage
+    console.log('Toggle dark mode clicked');
+    document.body.classList.toggle('dark-mode');
     const isDarkMode = document.body.classList.contains('dark-mode');
     localStorage.setItem('darkMode', isDarkMode);
-}
-
-// Load theme preference from localStorage
-function loadThemePreference() {
-    const isDarkMode = localStorage.getItem('darkMode') === 'true';
+    
     if (isDarkMode) {
-        document.body.classList.add('dark-mode');
+        console.log('Dark mode enabled');
+        document.getElementById('theme-toggle').innerHTML = '<i class="fas fa-sun"></i> Light Mode';
+    } else {
+        console.log('Dark mode disabled');
+        document.getElementById('theme-toggle').innerHTML = '<i class="fas fa-moon"></i> Dark Mode';
     }
 }
 
+
+
+// Load theme preference from localStorage
+function loadThemePreference() {
+    const darkMode = localStorage.getItem('darkMode') === 'true';
+    const themeToggleBtn = document.getElementById('theme-toggle');
+    
+    if (darkMode) {
+        document.body.classList.add('dark-mode');
+        if (themeToggleBtn) {
+            themeToggleBtn.innerHTML = '<i class="fas fa-sun"></i> Light Mode';
+        }
+    } else {
+        document.body.classList.remove('dark-mode');
+        if (themeToggleBtn) {
+            themeToggleBtn.innerHTML = '<i class="fas fa-moon"></i> Dark Mode';
+        }
+    }
+}
+
+
+
 // Initialize the application when the DOM is loaded
-document.addEventListener('DOMContentLoaded', init);
+document.addEventListener('DOMContentLoaded', () => {
+    init();
+    
+    // Add direct event listener to theme toggle button
+    const themeToggleBtn = document.getElementById('theme-toggle');
+    if (themeToggleBtn) {
+        console.log('Theme toggle button found, adding direct event listener');
+        
+        // Remove any existing event listeners
+        themeToggleBtn.removeEventListener('click', toggleDarkMode);
+        
+        // Add new event listener
+        themeToggleBtn.onclick = function(event) {
+            console.log('Theme toggle clicked directly');
+            toggleDarkMode(event);
+            return false;
+        };
+    } else {
+        console.error('Theme toggle button not found');
+    }
+});

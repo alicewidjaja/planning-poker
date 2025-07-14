@@ -16,7 +16,7 @@
                 <span id="room-id">Room: </span>
                 <button id="copy-room-link" title="Copy room link"><i class="fas fa-copy"></i></button>
                 <button id="create-new-room">Create New Room</button>
-                <button id="theme-toggle" title="Toggle Dark Mode"><i class="fas fa-moon"></i><i class="fas fa-sun"></i> Dark Mode</button>
+                <button id="theme-toggle" title="Toggle Dark Mode" onclick="toggleDarkModeDirectly()"><i class="fas fa-moon"></i> Dark Mode</button>
             </div>
         </header>
 
@@ -81,6 +81,7 @@
                 
                 <div class="voting-area">
                     <h2>Cast Your Vote</h2>
+
                     <div class="timer-container">
                         <div class="timer-display">
                             <span id="timer-value">5</span>
@@ -91,15 +92,28 @@
                             <button id="reset-timer" title="Reset Timer"><i class="fas fa-redo"></i></button>
                         </div>
                     </div>
-                    <div class="card-deck">
-                        <div class="card" data-value="1">1</div>
-                        <div class="card" data-value="2">2</div>
-                        <div class="card" data-value="3">3</div>
-                        <div class="card" data-value="5">5</div>
-                        <div class="card" data-value="8">8</div>
-                        <div class="card" data-value="13">13</div>
-                        <div class="card" data-value="21">21</div>
-                        <div class="card" data-value="?">?</div>
+                    
+                    <div id="join-message" class="join-message">
+                        <i class="fas fa-exclamation-circle"></i> Please enter your name and join the session to vote
+                    </div>
+                    <div class="card-deck" id="card-deck">
+                        <div class="card-row story-points-row">
+                            <div class="card" data-value="1">1</div>
+                            <div class="card" data-value="2">2</div>
+                            <div class="card" data-value="3">3</div>
+                            <div class="card" data-value="5">5</div>
+                            <div class="card" data-value="8">8</div>
+                            <div class="card" data-value="13">13</div>
+                            <div class="card" data-value="21">21</div>
+                            <div class="card" data-value="?">?</div>
+                        </div>
+                        <div class="card-row tshirt-row">
+                            <div class="card tshirt-card" data-value="XS" data-points="< 19 SP">XS</div>
+                            <div class="card tshirt-card" data-value="S" data-points="20-39 SP">S</div>
+                            <div class="card tshirt-card" data-value="M" data-points="40-59 SP">M</div>
+                            <div class="card tshirt-card" data-value="L" data-points="60-89 SP">L</div>
+                            <div class="card tshirt-card" data-value="XL" data-points="> 90 SP">XL</div>
+                        </div>
                     </div>
                     <div class="selected-card-display">
                         <p>Your vote: <span id="selected-vote">None</span></p>
@@ -132,6 +146,36 @@
         </footer>
     </div>
 
+    <script>
+        function toggleDarkModeDirectly() {
+            console.log('Direct toggle dark mode clicked');
+            document.body.classList.toggle('dark-mode');
+            const isDarkMode = document.body.classList.contains('dark-mode');
+            localStorage.setItem('darkMode', isDarkMode);
+            
+            const themeToggleBtn = document.getElementById('theme-toggle');
+            if (isDarkMode) {
+                console.log('Dark mode enabled directly');
+                themeToggleBtn.innerHTML = '<i class="fas fa-sun"></i> Light Mode';
+            } else {
+                console.log('Dark mode disabled directly');
+                themeToggleBtn.innerHTML = '<i class="fas fa-moon"></i> Dark Mode';
+            }
+        }
+        
+        // Load theme preference on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const darkMode = localStorage.getItem('darkMode') === 'true';
+            const themeToggleBtn = document.getElementById('theme-toggle');
+            
+            if (darkMode) {
+                document.body.classList.add('dark-mode');
+                if (themeToggleBtn) {
+                    themeToggleBtn.innerHTML = '<i class="fas fa-sun"></i> Light Mode';
+                }
+            }
+        });
+    </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.1/socket.io.min.js"></script>
     <script src="js/app.js"></script>
 </body>
