@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>T-Shirt Icon Simple</title>
+    <g stroke="currentColor" stroke-width="1.5" fill="none" fill-rule="evenodd">
+        <!-- Simple T-shirt outline similar to the reference image -->
+        <path d="M5,5 L8,3 L16,3 L19,5 L17,8 L17,20 L7,20 L7,8 L5,5 Z" 
+              stroke-linecap="round"
+              stroke-linejoin="round">
+        </path>
+        <!-- Collar detail -->
+        <path d="M9,3 C9,4.5 10.3,5.5 12,5.5 C13.7,5.5 15,4.5 15,3" 
+              stroke-linecap="round">
+        </path>
+    </g>
+</svg>

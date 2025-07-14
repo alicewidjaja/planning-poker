@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>T-Shirt Icon Detailed</title>
+    <defs>
+        <linearGradient id="primaryGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#6366F1;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#8B5CF6;stop-opacity:1" />
+        </linearGradient>
+    </defs>
+    <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <!-- T-shirt body with more detailed shape -->
+        <path d="M21,7.5 L17,3.5 C17,3.5 15.5,3 14,3 C14,4.1 13.1,5.5 12,5.5 C10.9,5.5 10,4.1 10,3 C8.5,3 7,3.5 7,3.5 L3,7.5 L6,9 L6,20.5 L18,20.5 L18,9 L21,7.5 Z" 
+              fill="url(#primaryGradient)" 
+              stroke="#4F46E5"
+              stroke-width="0.5"
+              fill-rule="nonzero">
+        </path>
+        <!-- Collar detail -->
+        <path d="M12,5.5 C13.1,5.5 14,4.1 14,3 L10,3 C10,4.1 10.9,5.5 12,5.5 Z" 
+              fill="#FFFFFF" 
+              stroke="#4F46E5"
+              stroke-width="0.3"
+              fill-rule="nonzero">
+        </path>
+        <!-- Sleeve details -->
+        <path d="M6,9 L3,7.5 L7,3.5 L8,5 Z" 
+              fill="#5B21B6" 
+              fill-rule="nonzero">
+        </path>
+        <path d="M18,9 L21,7.5 L17,3.5 L16,5 Z" 
+              fill="#5B21B6" 
+              fill-rule="nonzero">
+        </path>
+    </g>
+</svg>

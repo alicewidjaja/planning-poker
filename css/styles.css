@@ -622,27 +622,31 @@ footer {
     width: 90px;
     height: 120px;
     background-color: var(--primary-color);
-    border: none;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    /* T-shirt shape for the entire card */
-    clip-path: polygon(
-        0% 15%,      /* Top left neck */
-        20% 15%,     /* Left neck */
-        30% 0%,      /* Left shoulder start */
-        70% 0%,      /* Right shoulder start */
-        80% 15%,     /* Right neck */
-        100% 15%,    /* Top right neck */
-        100% 40%,    /* Right sleeve start */
-        85% 40%,     /* Right sleeve inner */
-        85% 100%,    /* Bottom right */
-        15% 100%,    /* Bottom left */
-        15% 40%,     /* Left sleeve inner */
-        0% 40%       /* Left sleeve start */
-    );
+    border: 2px solid var(--primary-color);
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     padding: 0;
     margin: 10px;
     cursor: pointer;
     transition: transform 0.2s, box-shadow 0.2s;
+    overflow: hidden;
+}
+
+/* Add T-shirt icon to the background */
+.tshirt-card::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 70px;
+    height: 70px;
+    transform: translate(-50%, -50%);
+    background-image: url('../img/tshirt-outline.svg');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    opacity: 0.2;
+    z-index: 0;
 }
 
 .tshirt-card:hover {
@@ -653,10 +657,11 @@ footer {
 /* Size label */
 .tshirt-card {
     font-weight: bold;
-    font-size: 28px;
+    font-size: 24px;
     color: white;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+    text-shadow: none;
     padding-bottom: 15px; /* Add space between size label and story points */
+    z-index: 1; /* Ensure text is above the background icon */
 }
 
 /* Story points text */
@@ -671,16 +676,16 @@ footer {
 .tshirt-card::after {
     content: attr(data-points);
     position: absolute;
-    bottom: 15px;
+    bottom: 10px;
     left: 0;
     right: 0;
     text-align: center;
-    font-size: 11pt;
-    color: white;
-    opacity: 0.9;
+    font-size: 10pt;
+    color: rgba(255, 255, 255, 0.9);
     font-weight: normal;
     padding: 0 5px;
     letter-spacing: 0.5px;
+    z-index: 1;
 }
 
 /* Ensure T-shirt story points are black when selected in dark mode */
@@ -693,8 +698,9 @@ body.dark-mode .tshirt-card.selected::after {
 /* Selected state */
 .tshirt-card.selected {
     transform: translateY(-5px);
-    box-shadow: 0 0 0 3px var(--accent-color), 0 6px 12px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 0 0 2px var(--accent-color), 0 4px 8px rgba(0, 0, 0, 0.2);
     background-color: var(--accent-color);
+    border-color: var(--accent-color);
 }
 
 /* Disabled state */
