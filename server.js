@@ -4,6 +4,10 @@ const socketIO = require('socket.io');
 const path = require('path');
 const axios = require('axios');
 const session = require('express-session');
+const dotenv = require('dotenv');
+
+// Load environment variables from .env file
+dotenv.config();
 
 const app = express();
 const server = http.createServer(app);
@@ -13,11 +17,16 @@ const io = socketIO(server);
 app.use(express.static(path.join(__dirname)));
 app.use(express.json());
 app.use(session({
-    secret: 'planning-poker-secret',
+    secret: process.env.SESSION_SECRET || 'fallback-secret-for-development-only',
     resave: false,
     saveUninitialized: true,
-    cookie: { secure: false } // Set to true if using HTTPS
+    cookie: { secure: process.env.NODE_ENV === 'production' } // Set to true in production
 }));
+
+// Log warning if using fallback secret
+if (!process.env.SESSION_SECRET) {
+    console.warn('WARNING: Using fallback session secret. Set SESSION_SECRET in .env file for production use.');
+}
 
 // JIRA API proxy endpoints
 app.post('/api/jira/connect', (req, res) => {
@@ -35,15 +44,34 @@ app.post('/api/jira/connect', (req, res) => {
     
     console.log(`Attempting to connect to JIRA at: ${apiUrl}`);
     
-    axios({
-        method: 'get',
-        url: apiUrl,
-        auth: {
-            username: email,
-            password: token
-        },
-        timeout: 10000 // 10 second timeout
-    })
+    // Support both API tokens and Personal Access Tokens (PATs)
+    // For PATs, use Bearer authentication
+    // For API tokens, use Basic authentication
+    let config;
+    
+    if (token.length > 40) { // Likely a PAT
+        config = {
+            method: 'get',
+            url: apiUrl,
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/json'
+            },
+            timeout: 10000 // 10 second timeout
+        };
+    } else { // Likely an API token
+        config = {
+            method: 'get',
+            url: apiUrl,
+            auth: {
+                username: email,
+                password: token
+            },
+            timeout: 10000 // 10 second timeout
+        };
+    }
+    
+    axios(config)
     .then(response => {
         console.log('JIRA connection successful');
         res.json({ success: true, user: response.data });
@@ -83,14 +111,30 @@ app.get('/api/jira/issue/:issueKey', (req, res) => {
     const { url, email, token } = req.session.jiraCredentials;
     const issueKey = req.params.issueKey;
     
-    axios({
-        method: 'get',
-        url: `${url}/rest/api/2/issue/${issueKey}`,
-        auth: {
-            username: email,
-            password: token
-        }
-    })
+    // Support both API tokens and Personal Access Tokens (PATs)
+    let config;
+    
+    if (token.length > 40) { // Likely a PAT
+        config = {
+            method: 'get',
+            url: `${url}/rest/api/2/issue/${issueKey}`,
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/json'
+            }
+        };
+    } else { // Likely an API token
+        config = {
+            method: 'get',
+            url: `${url}/rest/api/2/issue/${issueKey}`,
+            auth: {
+                username: email,
+                password: token
+            }
+        };
+    }
+    
+    axios(config)
     .then(response => {
         console.log(`Successfully fetched JIRA issue ${issueKey}`);
         res.json(response.data);
@@ -115,19 +159,38 @@ app.post('/api/jira/update-points/:issueKey', (req, res) => {
     // Default to customfield_10002 if not specified
     const storyPointsField = fieldId || 'customfield_10002';
     
-    axios({
-        method: 'put',
-        url: `${url}/rest/api/2/issue/${issueKey}`,
-        auth: {
-            username: email,
-            password: token
-        },
-        data: {
-            fields: {
-                [storyPointsField]: parseFloat(points)
-            }
+    // Support both API tokens and Personal Access Tokens (PATs)
+    let config;
+    const data = {
+        fields: {
+            [storyPointsField]: parseFloat(points)
         }
-    })
+    };
+    
+    if (token.length > 40) { // Likely a PAT
+        config = {
+            method: 'put',
+            url: `${url}/rest/api/2/issue/${issueKey}`,
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            data: data
+        };
+    } else { // Likely an API token
+        config = {
+            method: 'put',
+            url: `${url}/rest/api/2/issue/${issueKey}`,
+            auth: {
+                username: email,
+                password: token
+            },
+            data: data
+        };
+    }
+    
+    axios(config)
     .then(() => {
         console.log(`Updated story points for ${issueKey} to ${points}`);
         res.json({ success: true });

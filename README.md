@@ -83,13 +83,25 @@ This application uses Node.js with Express and Socket.IO for real-time communica
 npm install
 ```
 
-2. Start the server:
+2. Set up environment variables:
+
+```bash
+# Copy the example environment file
+cp .env.example .env
+
+# Generate a secure session secret
+node generate-secret.js
+```
+
+Copy the generated SESSION_SECRET and add it to your `.env` file.
+
+3. Start the server:
 
 ```bash
 npm start
 ```
 
-3. Open `http://localhost:3000` in your browser.
+4. Open `http://localhost:3000` in your browser.
 
 ## How Multiple Team Members Join the Same Session
 
